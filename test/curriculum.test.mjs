@@ -27,3 +27,17 @@ test("recent lessons are penalized when no explicit recommendation wins", async 
   const lesson = selectLesson(state, { track: "dsa", duration: 25 });
   assert.notEqual(lesson.id, "hashmap-patterns");
 });
+
+test("an explicit continuation recommendation overrides the recency penalty", async () => {
+  const state = await seedState();
+  state.recommendation = {
+    lessonId: "pagination-boundaries",
+    reason: "Continue this concept before advancing.",
+  };
+  state.history.push({ lessonId: "pagination-boundaries" });
+
+  const lesson = selectLesson(state);
+
+  assert.equal(lesson.id, "pagination-boundaries");
+  assert.match(lesson.reason, /continue this concept/i);
+});

@@ -4,6 +4,7 @@ import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { alternateLessons, CURRICULUM, selectLesson, TRACKS } from "./lib/curriculum.mjs";
+import { addUserMemoryNote, createProfileSync, ensureLearnerState, removeUserMemoryNote } from "./lib/learner-memory.mjs";
 import { StateStore } from "./lib/state-store.mjs";
 import { applyAssessment, assessSession, createSession, modelName, replyToLearner } from "./lib/tutor.mjs";
 
@@ -27,21 +28,36 @@ function json(response, status, body) {
   response.end(JSON.stringify(body));
 }
 
+function badRequest(message) {
+  const error = new Error(message);
+  error.statusCode = 400;
+  return error;
+}
+
+function inferTrack(request) {
+  const text = request.toLowerCase();
+  if (/\b(ml|machine learning|gradient|neural|model|math)\b/.test(text)) return "ml";
+  if (/\b(dsa|leetcode|algorithm|data structure|interview problem)\b/.test(text)) return "dsa";
+  if (/\b(backend|api|database|cache|system|repository|swe)\b/.test(text)) return "swe";
+  return null;
+}
+
 async function bodyFrom(request) {
   let raw = "";
   for await (const chunk of request) {
     raw += chunk;
-    if (raw.length > 1_000_000) throw new Error("Request body is too large.");
+    if (raw.length > 1_000_000) throw badRequest("Request body is too large.");
   }
   if (!raw) return {};
   try {
     return JSON.parse(raw);
   } catch {
-    throw new Error("Request body must be valid JSON.");
+    throw badRequest("Request body must be valid JSON.");
   }
 }
 
 function publicState(state) {
+  ensureLearnerState(state);
   const recommended = selectLesson(state);
   return {
     ...state,
@@ -59,18 +75,72 @@ async function apiRoute(request, response, url) {
     return json(response, 200, publicState(await store.read()));
   }
 
+  if (request.method === "GET" && url.pathname === "/api/memory/export") {
+    const state = await store.read();
+    return json(response, 200, { text: createProfileSync(state), generatedAt: new Date().toISOString() });
+  }
+
+  if (request.method === "PATCH" && url.pathname === "/api/profile") {
+    const input = await bodyFrom(request);
+    const state = await store.update((current) => {
+      ensureLearnerState(current);
+      if (input.primaryGoal !== undefined) {
+        const primaryGoal = String(input.primaryGoal).trim();
+        if (!primaryGoal || primaryGoal.length > 600) throw badRequest("Keep the primary goal between 1 and 600 characters.");
+        current.profile.primaryGoal = primaryGoal;
+      }
+      if (input.currentContext !== undefined) {
+        const currentContext = String(input.currentContext).trim();
+        if (!currentContext || currentContext.length > 1_200) throw badRequest("Keep the current context between 1 and 1,200 characters.");
+        current.learningMemory.currentContext = currentContext;
+      }
+      if (input.defaultDuration !== undefined) {
+        const duration = Number(input.defaultDuration);
+        if (!Number.isFinite(duration) || duration < 10 || duration > 60) throw badRequest("Default duration must be between 10 and 60 minutes.");
+        current.profile.preferences.defaultDuration = duration;
+      }
+      return current;
+    });
+    return json(response, 200, { state: publicState(state) });
+  }
+
+  if (request.method === "POST" && url.pathname === "/api/memory/note") {
+    const input = await bodyFrom(request);
+    const content = String(input.content || "").trim();
+    if (!content) return json(response, 400, { error: "Write something for the tutor to remember." });
+    if (content.length > 600) return json(response, 400, { error: "Keep a memory note under 600 characters." });
+    let note;
+    const state = await store.update((current) => {
+      note = addUserMemoryNote(current, content);
+      return current;
+    });
+    return json(response, 201, { note, state: publicState(state) });
+  }
+
+  const noteMatch = url.pathname.match(/^\/api\/memory\/note\/([^/]+)$/);
+  if (request.method === "DELETE" && noteMatch) {
+    let removed = false;
+    const state = await store.update((current) => {
+      removed = removeUserMemoryNote(current, noteMatch[1]);
+      return current;
+    });
+    if (!removed) return json(response, 404, { error: "That memory note no longer exists." });
+    return json(response, 200, { state: publicState(state) });
+  }
+
   if (request.method === "POST" && url.pathname === "/api/session/start") {
     const input = await bodyFrom(request);
     const state = await store.read();
     if (state.activeSession) return json(response, 200, { session: state.activeSession, resumed: true });
 
+    const inferredTrack = input.track || inferTrack(String(input.request || ""));
     const lesson = input.lessonId
       ? CURRICULUM.find((item) => item.id === input.lessonId)
-      : selectLesson(state, { track: input.track, duration: input.duration });
+      : selectLesson(state, { track: inferredTrack, duration: input.duration });
     if (!lesson) return json(response, 404, { error: "That lesson could not be found." });
 
     const duration = Math.min(60, Math.max(10, Number(input.duration || lesson.duration || 30)));
-    const session = createSession(lesson, duration);
+    const session = createSession(lesson, duration, { pace: input.pace, request: input.request });
     await store.update((current) => ({ ...current, activeSession: session }));
     return json(response, 201, { session, resumed: false });
   }
@@ -118,6 +188,8 @@ async function apiRoute(request, response, url) {
           ...assessment,
           scoreBefore: result.historyItem.scoreBefore,
           scoreAfter: result.historyItem.scoreAfter,
+          dimensionsBefore: result.historyItem.dimensionsBefore,
+          dimensionsAfter: result.historyItem.dimensionsAfter,
         },
         state: publicState(result.state),
       });
@@ -161,7 +233,7 @@ const server = http.createServer(async (request, response) => {
     if (url.pathname.startsWith("/api/")) await apiRoute(request, response, url);
     else await staticRoute(response, url);
   } catch (error) {
-    json(response, error.message.includes("valid JSON") ? 400 : 500, { error: error.message || "Unexpected server error." });
+    json(response, error.statusCode || 500, { error: error.message || "Unexpected server error." });
   }
 });
 

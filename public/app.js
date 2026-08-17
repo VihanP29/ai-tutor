@@ -28,6 +28,7 @@ const icons = {
   today: '<path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle cx="12" cy="12" r="3.5"/><path d="m5.6 5.6 2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/>',
   progress: '<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>',
   history: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/>',
+  memory: '<path d="M9.5 4.5A3 3 0 0 0 4 6.2a3.2 3.2 0 0 0 .4 5.7A3.4 3.4 0 0 0 8 17.2V19a2 2 0 0 0 4 0V5.8a3 3 0 0 0-2.5-1.3Z"/><path d="M14.5 4.5A3 3 0 0 1 20 6.2a3.2 3.2 0 0 1-.4 5.7 3.4 3.4 0 0 1-3.6 5.3V19a2 2 0 0 1-4 0V5.8a3 3 0 0 1 2.5-1.3ZM8 9h4M12 13h4"/>',
   clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   spark: '<path d="m12 3 1.5 4.2L18 9l-4.5 1.8L12 15l-1.5-4.2L6 9l4.5-1.8L12 3Z"/><path d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z"/>',
   play: '<path d="m9 7 8 5-8 5V7Z"/>',
@@ -122,6 +123,7 @@ function sidebar() {
       <nav class="nav-list" aria-label="Main navigation">
         ${navButton("today", "today", "Today")}
         ${navButton("progress", "progress", "Progress")}
+        ${navButton("memory", "memory", "Memory")}
         ${navButton("history", "history", "History")}
       </nav>
       <div class="nav-spacer"></div>
@@ -255,6 +257,59 @@ function progressPage() {
   </div>`);
 }
 
+function memoryPage() {
+  const memory = ui.data.learningMemory;
+  const notes = memory.userNotes || [];
+  return shell(`<div class="page">
+    <header class="page-header"><p class="eyebrow">Personal learner model</p><h1>What your tutor knows</h1><p>This is the useful memory behind each lesson: slow-changing preferences, your current situation, and evidence from what you actually demonstrate. You control it.</p></header>
+
+    <div class="memory-layout">
+      <section class="card memory-editor">
+        <div class="card-head"><div><h2>Current direction</h2><p class="card-subtitle">Update this when recruiting, classes, or a project changes what matters next.</p></div><span class="track-pill">Editable</span></div>
+        <form id="profile-form" class="profile-form">
+          <label><span>Current context</span><textarea name="currentContext" rows="4" maxlength="1200">${escapeHtml(memory.currentContext)}</textarea></label>
+          <label><span>Long-term goal</span><textarea name="primaryGoal" rows="3" maxlength="600">${escapeHtml(ui.data.profile.primaryGoal)}</textarea></label>
+          <label class="compact-field"><span>Default session</span><select name="defaultDuration">${[10,20,30,40,60].map((value) => `<option value="${value}" ${Number(ui.data.profile.preferences.defaultDuration) === value ? "selected" : ""}>${value} minutes</option>`).join("")}</select></label>
+          <div class="form-actions"><span class="save-hint">Changes shape future recommendations and tutor prompts.</span><button class="button button-dark" type="submit" ${ui.loading ? "disabled" : ""}>Save direction</button></div>
+        </form>
+      </section>
+
+      <section class="card learning-contract">
+        <div class="card-head"><div><h2>Learning contract</h2><p class="card-subtitle">Stable unless you decide otherwise.</p></div></div>
+        <div class="contract-ratio"><strong>${ui.data.profile.preferences.theoryBuildRatio.building}/${ui.data.profile.preferences.theoryBuildRatio.theory}</strong><span>building to theory</span></div>
+        <ul class="contract-list">${ui.data.profile.preferences.teachingStyle.map((item) => `<li>${icon("check")}<span>${escapeHtml(item)}</span></li>`).join("")}</ul>
+      </section>
+    </div>
+
+    <section class="section">
+      <div class="section-heading"><div><h2>What recent lessons revealed</h2><p>These observations come from evidence, not résumé claims or topic exposure.</p></div></div>
+      <div class="observation-grid">
+        ${observationCard("Demonstrated strengths", memory.recentStrengths, "strength")}
+        ${observationCard("Still developing", memory.currentStruggles, "struggle")}
+      </div>
+    </section>
+
+    <section class="section card">
+      <div class="card-head"><div><h2>Tell your tutor something</h2><p class="card-subtitle">Use this for context the lesson history cannot infer: a new class, an upcoming interview, a project gap, or a teaching preference.</p></div><span class="track-pill">Your words</span></div>
+      <form id="memory-note-form" class="note-form"><textarea name="content" rows="2" maxlength="600" placeholder="Example: I’m starting a C++ project this week, so connect lessons to memory and systems when useful."></textarea><button class="button button-dark" type="submit" ${ui.loading ? "disabled" : ""}>Remember this</button></form>
+      <div class="note-list">${notes.length ? notes.map(memoryNote).join("") : '<p class="empty-copy">No personal notes added yet.</p>'}</div>
+    </section>
+
+    <section class="section sync-card">
+      <div><p class="eyebrow">Controlled handshake</p><h2>Profile sync for ChatGPT</h2><p>Generate a concise summary of stable preferences, current goals, strengths, and gaps when you want to update your broader ChatGPT context. Nothing syncs automatically.</p></div>
+      <button class="button button-light" data-action="copy-profile-sync">Copy profile sync</button>
+    </section>
+  </div>`);
+}
+
+function observationCard(title, items = [], type) {
+  return `<article class="card observation-card ${type}"><div class="observation-title"><span>${type === "strength" ? "↗" : "◎"}</span><h3>${title}</h3></div><div class="observation-list">${items.length ? [...items].reverse().map((item) => `<div><p>${escapeHtml(item.text)}</p><small>${prettyConcept(item.conceptId || "general")} · ${new Date(item.observedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</small></div>`).join("") : '<p class="empty-copy">Still calibrating from your lessons.</p>'}</div></article>`;
+}
+
+function memoryNote(note) {
+  return `<div class="memory-note"><div><p>${escapeHtml(note.text)}</p><small>Added ${new Date(note.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</small></div><button class="icon-button subtle" data-action="delete-memory-note" data-note-id="${escapeHtml(note.id)}" aria-label="Remove memory note">${icon("close")}</button></div>`;
+}
+
 function statCard(label, value, detail) {
   return `<div class="stat-card"><small>${label}</small><strong>${value}</strong><p>${detail}</p></div>`;
 }
@@ -262,7 +317,8 @@ function statCard(label, value, detail) {
 function masteryRow(id, entry) {
   const value = clampPercent(entry.score);
   const evidence = entry.evidence?.at(-1) || "No direct evidence recorded yet.";
-  return `<div class="mastery-row"><div class="mastery-name">${prettyConcept(id)}<small>${escapeHtml(evidence)}</small></div><div class="meter"><span style="width:${value}%"></span></div><div class="mastery-score">${value}%</div></div>`;
+  const dimensions = Object.entries(entry.dimensions || {});
+  return `<div class="mastery-row"><div class="mastery-name">${prettyConcept(id)}<small>${escapeHtml(evidence)}</small>${dimensions.length ? `<div class="dimension-chips">${dimensions.map(([name, score]) => `<span>${prettyConcept(name)} ${clampPercent(score)}%</span>`).join("")}</div>` : ""}</div><div class="meter"><span style="width:${value}%"></span></div><div class="mastery-score">${value}%</div></div>`;
 }
 
 function historyPage() {
@@ -289,7 +345,7 @@ function lessonPage() {
   return `<div class="lesson-shell">
     <header class="lesson-topbar">
       <button class="button button-text lesson-back" data-action="lesson-back">${icon("back")}<span>Dashboard</span></button>
-      <div class="lesson-title-mini"><small>${ui.data.tracks[session.lesson.track].shortLabel} · ${session.duration} min</small><strong>${escapeHtml(session.lesson.title)}</strong></div>
+      <div class="lesson-title-mini"><small>${ui.data.tracks[session.lesson.track].shortLabel} · ${session.duration} min · ${escapeHtml(session.tailoring?.pace || "balanced")}</small><strong>${escapeHtml(session.lesson.title)}</strong></div>
       <button class="button button-light lesson-finish" data-action="finish-session" ${ui.loading ? "disabled" : ""}>${icon("check")}<span>${ui.loading ? "Finishing…" : "Finish"}</span></button>
     </header>
     <main class="chat-wrap">
@@ -324,13 +380,24 @@ function recapPage() {
   const recap = ui.recap;
   return `<div class="lesson-shell"><main class="recap"><section class="recap-card">
     <div class="recap-icon">✓</div><p class="eyebrow" style="margin-top:22px">Session complete</p><h1>${escapeHtml(recap.title)}</h1><p class="recap-summary">${escapeHtml(recap.summary)}</p>
-    <div class="score-change"><div><small>Confidence before</small><strong>${clampPercent(recap.scoreBefore)}%</strong></div><div>${icon("arrow")}</div><div style="text-align:right"><small>Confidence now</small><strong>${clampPercent(recap.scoreAfter)}%</strong></div></div>
+    <div class="score-change"><div><small>Overall confidence before</small><strong>${clampPercent(recap.scoreBefore)}%</strong></div><div>${icon("arrow")}</div><div style="text-align:right"><small>Overall confidence now</small><strong>${clampPercent(recap.scoreAfter)}%</strong></div></div>
+    ${dimensionRecap(recap)}
     <div class="recap-grid">
       <div class="recap-block"><h3>What you demonstrated</h3><ul>${recap.demonstrated.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></div>
       <div class="recap-block"><h3>Keep developing</h3><ul>${recap.needsWork.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></div>
     </div>
     <div class="recap-actions"><button class="button button-dark" data-action="recap-home">Back to dashboard</button><button class="button button-light" data-route="progress">See updated progress</button></div>
   </section></main></div>`;
+}
+
+function dimensionRecap(recap) {
+  const entries = Object.entries(recap.dimensionsAfter || {});
+  if (!entries.length) return "";
+  return `<div class="recap-dimensions"><p class="choice-label">Evidence updated</p><div>${entries.map(([name, after]) => {
+    const before = recap.dimensionsBefore?.[name];
+    const change = before === undefined ? "new" : `${Math.round((after - before) * 100) >= 0 ? "+" : ""}${Math.round((after - before) * 100)}%`;
+    return `<span><small>${prettyConcept(name)}</small><strong>${clampPercent(after)}%</strong><em>${change}</em></span>`;
+  }).join("")}</div></div>`;
 }
 
 function modal() {
@@ -342,8 +409,16 @@ function modal() {
     <div class="modal-head"><div><h2 id="lesson-picker-title">Shape today’s session</h2><p>These choices affect one lesson, not your long-term priorities.</p></div><button class="icon-button" data-action="close-modal" aria-label="Close">${icon("close")}</button></div>
     <p class="choice-label">How much time do you have?</p>
     <div class="segmented">${[10,20,30,40].map((value) => `<button class="choice ${selectedDuration === value ? "selected" : ""}" data-action="choose-duration" data-duration="${value}">${value} min</button>`).join("")}</div>
+    <p class="choice-label">What kind of energy do you have?</p>
+    <div class="segmented">${[
+      ["light", "Keep it light"],
+      ["balanced", "Balanced"],
+      ["hands-on", "Hands-on"],
+    ].map(([value, label]) => `<button class="choice ${ui.modal.pace === value ? "selected" : ""}" data-action="choose-pace" data-pace="${value}">${label}</button>`).join("")}</div>
     <p class="choice-label">What should we work on?</p>
     <div class="alternate-list">${choices.map((lesson, index) => `<button class="alternate ${ui.modal.lessonId === lesson.id ? "selected" : ""}" data-action="choose-lesson" data-lesson-id="${lesson.id}"><div><strong>${escapeHtml(lesson.title)}</strong><small>${escapeHtml(lesson.objective)}</small></div><span>${!ui.modal.track && index === 0 ? "Recommended" : ui.data.tracks[lesson.track].shortLabel}</span></button>`).join("")}</div>
+    <p class="choice-label">Anything else to account for?</p>
+    <textarea class="modal-input" data-role="session-request" rows="2" maxlength="600" placeholder="Optional: I’m walking, connect this to my current project, quiz me harder…">${escapeHtml(ui.modal.request || "")}</textarea>
     <div class="modal-actions"><button class="button button-light" data-action="close-modal">Cancel</button><button class="button button-dark" data-action="start-selected" ${ui.loading ? "disabled" : ""}>${ui.loading ? "Preparing…" : "Start lesson"}</button></div>
   </section></div>`;
 }
@@ -353,6 +428,7 @@ function render() {
   if (ui.recap) root.innerHTML = recapPage();
   else if (ui.lessonOpen && ui.data.activeSession) root.innerHTML = lessonPage();
   else if (ui.route === "progress") root.innerHTML = progressPage();
+  else if (ui.route === "memory") root.innerHTML = memoryPage();
   else if (ui.route === "history") root.innerHTML = historyPage();
   else root.innerHTML = dashboard();
   requestAnimationFrame(() => {
@@ -363,11 +439,14 @@ function render() {
   });
 }
 
-async function startLesson({ lessonId, track, duration } = {}) {
+async function startLesson({ lessonId, track, duration, pace, request } = {}) {
   ui.loading = true;
   render();
   try {
-    const result = await api("/api/session/start", { method: "POST", body: JSON.stringify({ lessonId, track, duration }) });
+    const result = await api("/api/session/start", {
+      method: "POST",
+      body: JSON.stringify({ lessonId, track, duration, pace, request }),
+    });
     ui.data.activeSession = result.session;
     ui.lessonOpen = true;
     ui.modal = null;
@@ -419,6 +498,66 @@ async function finishSession() {
   }
 }
 
+async function saveProfile(form) {
+  const values = new FormData(form);
+  ui.loading = true;
+  render();
+  try {
+    const result = await api("/api/profile", {
+      method: "PATCH",
+      body: JSON.stringify({
+        currentContext: values.get("currentContext"),
+        primaryGoal: values.get("primaryGoal"),
+        defaultDuration: Number(values.get("defaultDuration")),
+      }),
+    });
+    ui.data = result.state;
+    toast("Your learning direction was updated.");
+  } catch (error) {
+    toast(error.message, true);
+  } finally {
+    ui.loading = false;
+    render();
+  }
+}
+
+async function addMemoryNote(form) {
+  const content = new FormData(form).get("content")?.trim();
+  if (!content) return;
+  ui.loading = true;
+  try {
+    const result = await api("/api/memory/note", { method: "POST", body: JSON.stringify({ content }) });
+    ui.data = result.state;
+    toast("Your tutor will carry that forward.");
+  } catch (error) {
+    toast(error.message, true);
+  } finally {
+    ui.loading = false;
+    render();
+  }
+}
+
+async function deleteMemoryNote(noteId) {
+  try {
+    const result = await api(`/api/memory/note/${encodeURIComponent(noteId)}`, { method: "DELETE" });
+    ui.data = result.state;
+    toast("Memory note removed.");
+    render();
+  } catch (error) {
+    toast(error.message, true);
+  }
+}
+
+async function copyProfileSync() {
+  try {
+    const result = await api("/api/memory/export");
+    await navigator.clipboard.writeText(result.text);
+    toast("Profile sync copied. Paste it into ChatGPT whenever you want to refresh broader context.");
+  } catch (error) {
+    toast(error.message, true);
+  }
+}
+
 document.addEventListener("click", (event) => {
   const routeTarget = event.target.closest("[data-route]");
   if (routeTarget) {
@@ -442,20 +581,23 @@ document.addEventListener("click", (event) => {
   if (action === "lesson-back") { ui.lessonOpen = false; render(); }
   if (action === "finish-session") finishSession();
   if (action === "open-lesson-picker") {
-    ui.modal = { duration: ui.data.profile.preferences.defaultDuration, lessonId: ui.data.recommendation.lesson.id };
+    ui.modal = { duration: ui.data.profile.preferences.defaultDuration, lessonId: ui.data.recommendation.lesson.id, pace: "balanced", request: "" };
     render();
   }
   if (action === "close-modal") { ui.modal = null; render(); }
   if (action === "choose-duration") { ui.modal.duration = Number(target.dataset.duration); render(); }
+  if (action === "choose-pace") { ui.modal.pace = target.dataset.pace; render(); }
   if (action === "choose-lesson") { ui.modal.lessonId = target.dataset.lessonId; render(); }
   if (action === "start-selected") startLesson(ui.modal);
   if (action === "start-track") {
     const track = target.dataset.track;
     const matching = ui.data.catalog.find((lesson) => lesson.track === track);
-    ui.modal = { duration: ui.data.profile.preferences.defaultDuration, lessonId: matching?.id || null, track };
+    ui.modal = { duration: ui.data.profile.preferences.defaultDuration, lessonId: matching?.id || null, track, pace: "balanced", request: "" };
     render();
   }
   if (action === "recap-home") { ui.recap = null; ui.route = "today"; render(); }
+  if (action === "delete-memory-note") deleteMemoryNote(target.dataset.noteId);
+  if (action === "copy-profile-sync") copyProfileSync();
 });
 
 document.addEventListener("submit", (event) => {
@@ -464,6 +606,21 @@ document.addEventListener("submit", (event) => {
   const textarea = event.target.elements.message;
   const content = textarea.value.trim();
   if (content && !ui.loading) sendMessage(content);
+});
+
+document.addEventListener("submit", (event) => {
+  if (event.target.id === "profile-form") {
+    event.preventDefault();
+    if (!ui.loading) saveProfile(event.target);
+  }
+  if (event.target.id === "memory-note-form") {
+    event.preventDefault();
+    if (!ui.loading) addMemoryNote(event.target);
+  }
+});
+
+document.addEventListener("input", (event) => {
+  if (event.target.matches('[data-role="session-request"]') && ui.modal) ui.modal.request = event.target.value;
 });
 
 document.addEventListener("keydown", (event) => {

@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "profile": {
     "name": "Vihan",
     "primaryGoal": "Build practical SWE and DS&A depth for internship recruiting while keeping ML foundations active.",
@@ -42,6 +42,11 @@
     "backend_request_flow": {
       "score": 0.7,
       "status": "developing",
+      "dimensions": {
+        "conceptual": 0.74,
+        "reasoning": 0.72,
+        "application": 0.55
+      },
       "lastPracticed": "2026-08-17T16:00:00.000Z",
       "evidence": [
         "Traced routing, views, ORM, serializer, and response layers during a backend debugging session."
@@ -50,6 +55,11 @@
     "caching": {
       "score": 0.72,
       "status": "developing",
+      "dimensions": {
+        "conceptual": 0.78,
+        "reasoning": 0.76,
+        "application": 0.62
+      },
       "lastPracticed": "2026-08-17T16:30:00.000Z",
       "evidence": [
         "Correctly diagnosed cache invalidation after writes and a pagination cache-key collision."
@@ -58,48 +68,81 @@
     "pagination_validation": {
       "score": 0.2,
       "status": "needs-work",
+      "dimensions": {
+        "conceptual": 0.2
+      },
       "lastPracticed": null,
       "evidence": []
     },
     "database_indexes": {
       "score": 0.12,
       "status": "unseen",
+      "dimensions": {
+        "conceptual": 0.12
+      },
       "lastPracticed": null,
       "evidence": []
     },
     "program_execution": {
       "score": 0.22,
       "status": "needs-work",
+      "dimensions": {
+        "conceptual": 0.22
+      },
       "lastPracticed": null,
       "evidence": []
     },
     "repo_navigation": {
       "score": 0.22,
       "status": "needs-work",
+      "dimensions": {
+        "reasoning": 0.22,
+        "application": 0.18
+      },
       "lastPracticed": null,
       "evidence": []
     },
     "hashmaps": {
       "score": 0.42,
       "status": "developing",
+      "dimensions": {
+        "conceptual": 0.5,
+        "reasoning": 0.38,
+        "application": 0.34
+      },
       "lastPracticed": null,
       "evidence": []
     },
     "two_pointers": {
       "score": 0.34,
       "status": "developing",
+      "dimensions": {
+        "conceptual": 0.4,
+        "reasoning": 0.32,
+        "application": 0.3
+      },
       "lastPracticed": null,
       "evidence": []
     },
     "sliding_window": {
       "score": 0.18,
       "status": "needs-work",
+      "dimensions": {
+        "conceptual": 0.22,
+        "application": 0.14
+      },
       "lastPracticed": null,
       "evidence": []
     },
     "gradient_descent": {
       "score": 0.66,
       "status": "developing",
+      "dimensions": {
+        "conceptual": 0.78,
+        "reasoning": 0.7,
+        "mathematical": 0.5,
+        "application": 0.32
+      },
       "lastPracticed": "2026-08-14T17:00:00.000Z",
       "evidence": [
         "Connected derivative sign, learning rate, overshooting, oscillation, and multi-parameter gradients."
@@ -108,11 +151,72 @@
     "neural_networks": {
       "score": 0.25,
       "status": "needs-work",
+      "dimensions": {
+        "conceptual": 0.38,
+        "reasoning": 0.28,
+        "mathematical": 0.18,
+        "application": 0.16
+      },
       "lastPracticed": "2026-08-14T16:00:00.000Z",
       "evidence": [
         "Has high-level vocabulary but not yet a continuous mechanics-first mental model."
       ]
     }
+  },
+  "learningMemory": {
+    "currentContext": "SWE internship recruiting is the current priority, with DS&A practice alongside it. ML remains an active side-learning track rather than the main curriculum until recruiting pressure eases.",
+    "userNotes": [
+      {
+        "id": "seed-ai-assisted-calibration",
+        "text": "Do not infer mastery from résumé accomplishments or AI-assisted projects; verify what I can explain, design, modify, and debug myself.",
+        "createdAt": "2026-08-14T15:45:00.000Z"
+      },
+      {
+        "id": "seed-reasoning-over-syntax",
+        "text": "Syntax is cheap; prioritize systems reasoning, design choices, and why a solution works.",
+        "createdAt": "2026-08-14T15:46:00.000Z"
+      }
+    ],
+    "recentStrengths": [
+      {
+        "id": "seed-strength-cache",
+        "text": "Used stale-data symptoms to distinguish cache invalidation from cache-key design problems",
+        "conceptId": "caching",
+        "sourceSessionId": "seed-backend-debugging",
+        "observedAt": "2026-08-17T16:35:00.000Z"
+      },
+      {
+        "id": "seed-strength-gradient",
+        "text": "Connected the mountain analogy to derivative sign, learning rate, overshooting, and oscillation",
+        "conceptId": "gradient_descent",
+        "sourceSessionId": "chatgpt-gradient-session",
+        "observedAt": "2026-08-14T17:00:00.000Z"
+      }
+    ],
+    "currentStruggles": [
+      {
+        "id": "seed-struggle-mechanics",
+        "text": "High-level ML vocabulary is ahead of the continuous mathematical and mechanical understanding underneath it",
+        "conceptId": "neural_networks",
+        "sourceSessionId": "chatgpt-ml-basics-session",
+        "observedAt": "2026-08-14T16:30:00.000Z"
+      },
+      {
+        "id": "seed-struggle-pagination",
+        "text": "Pagination validation, invalid inputs, and boundary cases have not yet been tested",
+        "conceptId": "pagination_validation",
+        "sourceSessionId": "seed-backend-debugging",
+        "observedAt": "2026-08-17T16:35:00.000Z"
+      }
+    ],
+    "tutorObservations": [
+      {
+        "id": "seed-observation-calibration",
+        "text": "Lessons should probe first: the learner may know advanced terminology while missing a prerequisite, and will explicitly call out an unfair jump.",
+        "observedAt": "2026-08-17T16:35:00.000Z"
+      }
+    ],
+    "lastProfileSyncAt": null
   },
   "recommendation": {
     "lessonId": "pagination-boundaries",
