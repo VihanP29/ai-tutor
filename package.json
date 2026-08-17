@@ -1,0 +1,15 @@
+{
+  "name": "ai-tutor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A local-first adaptive AI tutor for daily SWE, DS&A, and ML learning.",
+  "scripts": {
+    "dev": "node --watch server.mjs",
+    "start": "node server.mjs",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,147 @@
+{
+  "version": 1,
+  "profile": {
+    "name": "Vihan",
+    "primaryGoal": "Build practical SWE and DS&A depth for internship recruiting while keeping ML foundations active.",
+    "trackPriorities": {
+      "swe": 0.45,
+      "dsa": 0.35,
+      "ml": 0.15,
+      "exploration": 0.05
+    },
+    "preferences": {
+      "defaultDuration": 30,
+      "theoryBuildRatio": {
+        "theory": 40,
+        "building": 60
+      },
+      "teachingStyle": [
+        "Guide toward conclusions instead of dumping answers",
+        "Use bite-sized, interactive lessons",
+        "Prefer practical examples, debugging, and system behavior",
+        "Identify gaps explicitly and recalibrate",
+        "Do not infer mastery from prior project exposure"
+      ]
+    },
+    "strengths": [
+      "Basic programming and some DS&A exposure",
+      "High-level AI systems vocabulary",
+      "Architectural and API-level reasoning",
+      "Learns well by connecting mechanics to existing intuition"
+    ],
+    "gaps": [
+      "Navigating unfamiliar repositories",
+      "Backend architecture and request flow",
+      "API, ORM, filtering, and validation",
+      "Caching and debugging",
+      "Stronger DS&A pattern recognition",
+      "Mathematical mechanics underneath ML concepts"
+    ]
+  },
+  "mastery": {
+    "backend_request_flow": {
+      "score": 0.7,
+      "status": "developing",
+      "lastPracticed": "2026-08-17T16:00:00.000Z",
+      "evidence": [
+        "Traced routing, views, ORM, serializer, and response layers during a backend debugging session."
+      ]
+    },
+    "caching": {
+      "score": 0.72,
+      "status": "developing",
+      "lastPracticed": "2026-08-17T16:30:00.000Z",
+      "evidence": [
+        "Correctly diagnosed cache invalidation after writes and a pagination cache-key collision."
+      ]
+    },
+    "pagination_validation": {
+      "score": 0.2,
+      "status": "needs-work",
+      "lastPracticed": null,
+      "evidence": []
+    },
+    "database_indexes": {
+      "score": 0.12,
+      "status": "unseen",
+      "lastPracticed": null,
+      "evidence": []
+    },
+    "program_execution": {
+      "score": 0.22,
+      "status": "needs-work",
+      "lastPracticed": null,
+      "evidence": []
+    },
+    "repo_navigation": {
+      "score": 0.22,
+      "status": "needs-work",
+      "lastPracticed": null,
+      "evidence": []
+    },
+    "hashmaps": {
+      "score": 0.42,
+      "status": "developing",
+      "lastPracticed": null,
+      "evidence": []
+    },
+    "two_pointers": {
+      "score": 0.34,
+      "status": "developing",
+      "lastPracticed": null,
+      "evidence": []
+    },
+    "sliding_window": {
+      "score": 0.18,
+      "status": "needs-work",
+      "lastPracticed": null,
+      "evidence": []
+    },
+    "gradient_descent": {
+      "score": 0.66,
+      "status": "developing",
+      "lastPracticed": "2026-08-14T17:00:00.000Z",
+      "evidence": [
+        "Connected derivative sign, learning rate, overshooting, oscillation, and multi-parameter gradients."
+      ]
+    },
+    "neural_networks": {
+      "score": 0.25,
+      "status": "needs-work",
+      "lastPracticed": "2026-08-14T16:00:00.000Z",
+      "evidence": [
+        "Has high-level vocabulary but not yet a continuous mechanics-first mental model."
+      ]
+    }
+  },
+  "recommendation": {
+    "lessonId": "pagination-boundaries",
+    "reason": "Your backend debugging foundation is ready for pagination, input validation, and boundary cases—the natural next step from cache-key bugs.",
+    "updatedAt": "2026-08-17T16:35:00.000Z"
+  },
+  "history": [
+    {
+      "id": "seed-backend-debugging",
+      "lessonId": "cache-design",
+      "conceptId": "caching",
+      "track": "swe",
+      "title": "Debug cache keys and stale data",
+      "startedAt": "2026-08-17T15:50:00.000Z",
+      "completedAt": "2026-08-17T16:35:00.000Z",
+      "duration": 40,
+      "messageCount": 16,
+      "summary": "Traced a backend request and diagnosed cache invalidation and cache-key collision bugs.",
+      "scoreBefore": 0.3,
+      "scoreAfter": 0.72,
+      "demonstrated": [
+        "Identified stale data as an invalidation problem",
+        "Recognized missing page input in a cache key"
+      ],
+      "needsWork": [
+        "Pagination validation and boundary cases"
+      ]
+    }
+  ],
+  "activeSession": null,
+  "updatedAt": "2026-08-17T16:35:00.000Z"
+}
