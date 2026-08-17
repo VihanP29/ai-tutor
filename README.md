@@ -4,8 +4,6 @@ A local-first, single-user learning system built around one loop:
 
 > choose the right next topic → teach interactively → observe reasoning → update the learner model → choose better tomorrow
 
-The initial learner state comes from the “Ai Tutor” ChatGPT project. It prioritizes SWE internship preparation and DS&A, while keeping ML foundations active as a side track.
-
 ## What works
 
 - Personalized “today” dashboard with a prerequisite-aware lesson recommendation
@@ -61,9 +59,5 @@ lib/state-store.mjs     serialized, atomic JSON persistence
 data/learner-state.json editable learner profile and current state
 test/                   Node test suite
 ```
-
-## Deliberate MVP boundaries
-
-This version does not include authentication, social features, a vector database, a fixed semester-long curriculum, or cloud hosting. Those do not improve the core single-user learning loop yet. The structured JSON state is intentionally readable and easy to edit while the teaching workflow is validated.
 
 The OpenAI API key stays on the server. Session transcripts and learning state stay local; API calls use `store: false`.
